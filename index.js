@@ -1,22 +1,35 @@
 const todoInput = document.querySelector(".todoInput");
 const form = document.querySelector(".btn");
-const todos = document.querySelector(".todos ul");
+const todosOutput = document.querySelector(".todos ul");
 
-
-const addTodo = (text) =>{
-    if(text){
+const getTodos = () => {
+    const todos = JSON.parse(localStorage.getItem('todos'))
+    let allTodos = ""
+    todos.forEach((todo, index) => {
         const newTodo = `
             <li class="sTodo">
-                <span>${text}</span> 
+                <span>${todo.text}</span> 
                     <div class="todos_icon">
-                        <i class="fa-regular fa-trash-can deleteTodo"></i> 
-                        <i class="fa-regular fa-pen-to-square editTodo"></i> 
+                        <i class="fa-regular fa-trash-can deleteTodo" data-id=${index}></i> 
+                        <i class="fa-regular fa-pen-to-square editTodo" data-id=${index}></i> 
                     </div> 
             </li>
         `
-        todos.innerHTML += newTodo
+        allTodos += newTodo
+    })
+    todosOutput.innerHTML = allTodos
+    
+}
+const addTodo = (text) =>{
+    if(text){
+
+        let oldTodos = JSON.parse(localStorage.getItem('todos')) ? JSON.parse(localStorage.getItem('todos')) : []
+        
+        localStorage.setItem('todos', JSON.stringify([...oldTodos, {text}]))
+
         todoInput.value = ""
         todoInput.focus()
+        getTodos()
 
     }
 }
@@ -31,25 +44,39 @@ const editTodo = (text) => {
 }
 
 
-todos.addEventListener("click", (e) =>{
+todosOutput.addEventListener("click", (e) =>{
     if(e.target.classList.contains("sTodo")){
         e.target.classList.toggle("complete_todo")
     }
     if(e.target.nodeName === "SPAN"){
         e.target.classList.toggle("complete_todo")
     }
+
     if(e.target.classList.contains("deleteTodo")){
-        e.target.parentElement.parentElement.remove()
+        const id = e.target.getAttribute("data-id")
+        
+        let allTodos = JSON.parse(localStorage.getItem("todos")) ? JSON.parse(localStorage.getItem("todos")) : [];
+
+        allTodos.splice(Number(id, 1))
+
+        localStorage.setItem("todos", JSON.stringify(allTodos))
+        getTodos()
+
     }
+
     if(e.target.classList.contains("editTodo")){
        const editedTodo = editTodo(e.target.parentElement.parentElement.innerText)
-       e.target.parentElement.parentElement.innerHTML = `
-            <span>${editedTodo}</span>
-            <div class="todos_icon">
-                <i class="fa-regular fa-trash-can deleteTodo"></i>
-                <i class="fa-regular fa-pen-to-square editTodo"></i>
-            </div>
-       `
+
+       const id = e.target.getAttribute("data-id")
+        
+        let allTodos = JSON.parse(localStorage.getItem("todos")) ? JSON.parse(localStorage.getItem("todos")) : [];
+
+        allTodos.splice(Number(id), 1, {text: editedTodo})
+        console.log(allTodos)
+
+        localStorage.setItem("todos", JSON.stringify(allTodos))
+        getTodos()
+
     }
 })
 
@@ -57,3 +84,5 @@ form.addEventListener("click", (e) => {
     addTodo(todoInput.value)
     e.preventDefault()
 })
+
+getTodos()
